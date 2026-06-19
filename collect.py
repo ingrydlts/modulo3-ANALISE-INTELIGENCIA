@@ -21,13 +21,14 @@ from googleapiclient.discovery import build
 load_dotenv()
 
 # ── Configuração ──────────────────────────────────────────────────────────────
-NOTION_TOKEN             = os.environ.get("NOTION_TOKEN")
-YOUTUBE_API_KEY          = os.environ.get("YOUTUBE_API_KEY")
-NOTION_DB_ID             = os.environ.get("NOTION_DB_ID")
+NOTION_TOKEN                = os.environ.get("NOTION_TOKEN")
+YOUTUBE_API_KEY             = os.environ.get("YOUTUBE_API_KEY")
+NOTION_DB_ID                = os.environ.get("NOTION_DB_ID")
 NOTION_INTELIGENCIA_PAGE_ID = os.environ.get("NOTION_INTELIGENCIA_PAGE_ID")
+NOTION_COLETAS_DB_ID        = os.environ.get("NOTION_COLETAS_DB_ID")
 
-if not all([NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_INTELIGENCIA_PAGE_ID]):
-    raise SystemExit("❌ Variável de ambiente ausente. Verifique: NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_INTELIGENCIA_PAGE_ID")
+if not all([NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_INTELIGENCIA_PAGE_ID, NOTION_COLETAS_DB_ID]):
+    raise SystemExit("❌ Variável de ambiente ausente. Verifique: NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_INTELIGENCIA_PAGE_ID, NOTION_COLETAS_DB_ID")
 
 notion  = NotionClient(auth=NOTION_TOKEN)
 youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
@@ -55,13 +56,22 @@ if not TARGET_TYPE:
         "Verifique se a página existe e foi compartilhada com a integração Notion."
     )
 
-MES_ATUAL = datetime.now(timezone.utc).strftime("%B %Y")
+MESES_PT = {
+    "January": "Janeiro", "February": "Fevereiro", "March": "Março",
+    "April": "Abril", "May": "Maio", "June": "Junho",
+    "July": "Julho", "August": "Agosto", "September": "Setembro",
+    "October": "Outubro", "November": "Novembro", "December": "Dezembro"
+}
+
+_now          = datetime.now(timezone.utc)
+MES_ATUAL     = _now.strftime("%B %Y")
+MES_ATUAL_PT  = MESES_PT[_now.strftime("%B")]
 
 
 # ── Helpers YouTube ───────────────────────────────────────────────────────────
 
 def extrair_channel_id(url: str) -> str | None:
-    """Extrai o channel ID de URLs do YouTube (formato /channel/ ou @handle)."""
+    """Extrai o channel ID de URLs do YouTube (formatos /channel/, @handle e /c/ legado)."""
     # Formato: youtube.com/channel/UCxxxxxx
     match = re.search(r'youtube\.com/channel/(UC[\w-]+)', url)
     if match:
@@ -75,12 +85,25 @@ def extrair_channel_id(url: str) -> str | None:
         items = resp.get("items", [])
         return items[0]["id"] if items else None
 
+    # Formato legado: youtube.com/c/NomeDoCanal ou youtube.com/user/NomeDoCanal
+    match = re.search(r'youtube\.com/(?:c|user)/([\w.-]+)', url)
+    if match:
+        nome = match.group(1)
+        # Tenta buscar pelo nome do canal via search
+        resp = youtube.search().list(
+            part="snippet",
+            q=nome,
+            type="channel",
+            maxResults=1
+        ).execute()
+        items = resp.get("items", [])
+        return items[0]["snippet"]["channelId"] if items else None
+
     return None
 
 
 def buscar_dados_canal(channel_id: str) -> dict | None:
-    """Busca informações e últimos 10 vídeos do canal."""
-    # Info do canal
+    """Busca informações, thumbnail e últimos 10 vídeos do canal."""
     canal_resp = youtube.channels().list(
         part="snippet,contentDetails,statistics",
         id=channel_id
@@ -90,9 +113,17 @@ def buscar_dados_canal(channel_id: str) -> dict | None:
     if not items:
         return None
 
-    canal = items[0]
+    canal      = items[0]
     uploads_id = canal["contentDetails"]["relatedPlaylists"]["uploads"]
     stats      = canal.get("statistics", {})
+    thumbnails = canal["snippet"].get("thumbnails", {})
+
+    # Thumbnail do canal (melhor resolução disponível)
+    thumbnail_url = (
+        thumbnails.get("high", {}).get("url") or
+        thumbnails.get("medium", {}).get("url") or
+        thumbnails.get("default", {}).get("url") or ""
+    )
 
     # Últimos 10 vídeos
     playlist_resp = youtube.playlistItems().list(
@@ -114,17 +145,23 @@ def buscar_dados_canal(channel_id: str) -> dict | None:
             videos.append({
                 "titulo":      v["snippet"]["title"],
                 "publicado":   v["snippet"]["publishedAt"][:10],
-                "views":       v["statistics"].get("viewCount", "0"),
-                "likes":       v["statistics"].get("likeCount", "0"),
-                "comentarios": v["statistics"].get("commentCount", "0"),
-                "url":         f"https://youtube.com/watch?v={v['id']}"
+                "views":       int(v["statistics"].get("viewCount", 0)),
+                "likes":       int(v["statistics"].get("likeCount", 0)),
+                "comentarios": int(v["statistics"].get("commentCount", 0)),
+                "url":         f"https://youtube.com/watch?v={v['id']}",
+                "thumbnail":   v["snippet"].get("thumbnails", {}).get("high", {}).get("url", "")
             })
 
+    # Vídeo com mais views (para usar como capa se preferir)
+    top_video = max(videos, key=lambda v: v["views"]) if videos else None
+
     return {
-        "nome":        canal["snippet"]["title"],
-        "inscritos":   stats.get("subscriberCount", "privado"),
-        "total_videos": stats.get("videoCount", "0"),
-        "videos":      videos
+        "nome":          canal["snippet"]["title"],
+        "inscritos":     int(stats.get("subscriberCount", 0)),
+        "total_videos":  int(stats.get("videoCount", 0)),
+        "thumbnail_url": thumbnail_url,
+        "top_video":     top_video,
+        "videos":        videos
     }
 
 
@@ -152,62 +189,81 @@ def marcar_processado(page_id: str):
     )
 
 
-def montar_blocos_coleta(dados: dict, url_origem: str) -> list:
-    """Converte os dados do canal em blocos Notion."""
+def montar_blocos_videos(videos: list) -> list:
+    """Monta blocos visuais para os vídeos recentes."""
     blocos = [
-        {
-            "object": "block", "type": "heading_2",
-            "heading_2": {"rich_text": [{"text": {"content": f"Canal: {dados['nome']}"}}]}
-        },
-        {
-            "object": "block", "type": "paragraph",
-            "paragraph": {"rich_text": [{"text": {"content":
-                f"Inscritos: {dados['inscritos']} | Total de vídeos: {dados['total_videos']}\nFonte: {url_origem}"
-            }}]}
-        },
         {
             "object": "block", "type": "heading_3",
             "heading_3": {"rich_text": [{"text": {"content": "Últimos vídeos"}}]}
+        },
+        {
+            "object": "block", "type": "divider",
+            "divider": {}
         }
     ]
 
-    for v in dados["videos"]:
+    for v in videos:
+        # Thumbnail do vídeo como imagem inline
+        if v.get("thumbnail"):
+            blocos.append({
+                "object": "block", "type": "image",
+                "image": {"type": "external", "external": {"url": v["thumbnail"]}}
+            })
+
         blocos.append({
-            "object": "block", "type": "bulleted_list_item",
-            "bulleted_list_item": {"rich_text": [{"text": {"content":
-                f"{v['titulo']} ({v['publicado']})\n"
-                f"Views: {v['views']} | Likes: {v['likes']} | Comentários: {v['comentarios']}\n"
-                f"{v['url']}"
-            }}]}
+            "object": "block", "type": "callout",
+            "callout": {
+                "rich_text": [{"text": {"content":
+                    f"{v['titulo']}\n"
+                    f"📅 {v['publicado']}  •  👁 {v['views']:,} views  •  👍 {v['likes']:,}  •  💬 {v['comentarios']:,}\n"
+                    f"🔗 {v['url']}"
+                }}],
+                "icon": {"emoji": "▶️"},
+                "color": "gray_background"
+            }
         })
 
     return blocos
 
 
 def salvar_coleta_no_notion(dados: dict, url_origem: str, max_retries: int = 3):
-    """Cria página de coleta na pasta Inteligência do Notion com retry."""
-    titulo = f"COLETA YT — {dados['nome']} — {MES_ATUAL}"
+    """Cria entrada na database COLETAS YOUTUBE com thumbnail como capa."""
+    top = dados.get("top_video") or {}
 
-    # Detecta automaticamente se deve usar page_id ou database_id
-    parent = (
-        {"page_id": NOTION_INTELIGENCIA_PAGE_ID}
-        if TARGET_TYPE == "page"
-        else {"database_id": NOTION_INTELIGENCIA_PAGE_ID}
-    )
+    # Usa thumbnail do top vídeo como capa (mais visual que o avatar do canal)
+    capa_url = top.get("thumbnail") or dados.get("thumbnail_url") or ""
+
+    properties = {
+        "Canal":           {"title": [{"text": {"content": dados["nome"]}}]},
+        "Mês":             {"select": {"name": MES_ATUAL_PT}},
+        "Inscritos":       {"number": dados["inscritos"]},
+        "Total Vídeos":    {"number": dados["total_videos"]},
+        "Canal URL":       {"url": url_origem},
+        "CATEGORIA":       {"select": {"name": "CONCORRÊNCIA"}},
+    }
+
+    if top:
+        properties["Top Vídeo"]       = {"rich_text": [{"text": {"content": top["titulo"]}}]}
+        properties["Top Vídeo Views"] = {"number": top["views"]}
+
+    page_body = {
+        "parent":     {"database_id": NOTION_COLETAS_DB_ID},
+        "properties": properties,
+        "children":   montar_blocos_videos(dados["videos"])
+    }
+
+    if capa_url:
+        page_body["cover"] = {"type": "external", "external": {"url": capa_url}}
 
     for tentativa in range(1, max_retries + 1):
         try:
-            notion.pages.create(
-                parent=parent,
-                properties={"title": {"title": [{"text": {"content": titulo}}]}},
-                children=montar_blocos_coleta(dados, url_origem)
-            )
-            print(f"  ✓ Salvo: {titulo}")
+            notion.pages.create(**page_body)
+            print(f"  ✓ Salvo com thumbnail: {dados['nome']} — {MES_ATUAL_PT}")
             return
         except APIResponseError as e:
             print(f"  ⚠ Erro Notion (tentativa {tentativa}/{max_retries}): {e}")
             if tentativa == max_retries:
-                print(f"  ✗ Falha ao salvar {titulo}. Continuando para o próximo.")
+                print(f"  ✗ Falha ao salvar {dados['nome']}. Continuando.")
                 return
             time.sleep(2 ** tentativa)
 
