@@ -64,12 +64,17 @@ jobs:
 
       - name: Commitar insights.json atualizado
         if: steps.guard.outputs.run == 'true'
+        env:
+          INSIGHTS_JSON_PATH: insights.json
         run: |
           git config user.name "por-dentro-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add insights.json
-          git diff --cached --quiet && echo "Nada novo para commitar." || git commit -m "chore: bilan de audiência da semana (auto)"
-          git push
+          if [ -f "$INSIGHTS_JSON_PATH" ]; then
+            git add "$INSIGHTS_JSON_PATH"
+            git diff --cached --quiet && echo "Nada novo para commitar." || { git commit -m "chore: bilan de audiência da semana (auto)"; git push; }
+          else
+            echo "⚠ '$INSIGHTS_JSON_PATH' não existe no checkout — nada para commitar nesta rodada."
+          fi
 
 # ── Sequenciamento com o script de busca de fontes ───────────────────────────
 # Este job termina por volta de 07:02–07:05 (Paris) na maioria das rodadas.
