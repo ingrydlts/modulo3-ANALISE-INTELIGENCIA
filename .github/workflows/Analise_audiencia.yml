@@ -14,27 +14,45 @@ jobs:
   analise-audiencia:
     runs-on: ubuntu-latest
     steps:
-      - name: Só segue se agora são ~07h em Paris
+      # IMPORTANTE: GitHub Actions não trata nenhum exit code como "neutro" —
+      # qualquer saída != 0 marca o STEP e o JOB inteiro como FAILED (❌),
+      # mesmo quando o objetivo é só pular a execução de propósito. Por isso
+      # este guard nunca usa "exit N": ele grava um output (run=true/false) e
+      # cada step seguinte só executa "if" esse output for true. Assim, fora
+      # do horário certo o job termina com sucesso (✓) e os demais steps
+      # aparecem como "skipped" — sem alerta falso de falha toda sexta.
+      - name: Verificar se é ~07h em Paris (ou disparo manual)
+        id: guard
         run: |
           HORA_PARIS=$(TZ='Europe/Paris' date +%H)
-          echo "Hora atual em Paris: ${HORA_PARIS}h"
-          if [ "$HORA_PARIS" != "07" ]; then
-            echo "Fora do horário de disparo real (fuso duplo) — pulando."
-            exit 78
+          echo "Hora atual em Paris: ${HORA_PARIS}h · evento: ${{ github.event_name }}"
+          if [ "$HORA_PARIS" = "07" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Fora do horário de disparo real (fuso duplo) — pulando esta execução (isso é esperado, não é falha)."
           fi
 
       - name: Checkout do repositório
+        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
 
       - name: Configurar Python
+        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependências
-        run: pip install notion-client anthropic python-dotenv
+        if: steps.guard.outputs.run == 'true'
+        # Versões travadas de propósito: anthropic + httpx soltos podem resolver
+        # uma combinação incompatível (erro comum: "Client.__init__() got an
+        # unexpected keyword argument 'proxies'", causado por httpx>=0.28 com
+        # uma versão do anthropic que ainda passa 'proxies' internamente).
+        run: pip install "anthropic>=0.39,<1.0" "httpx>=0.27,<0.28" "notion-client>=2.2.1" python-dotenv
 
       - name: Rodar análise de audiência
+        if: steps.guard.outputs.run == 'true'
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -45,6 +63,7 @@ jobs:
         run: python analyze_audiencia.py
 
       - name: Commitar insights.json atualizado
+        if: steps.guard.outputs.run == 'true'
         run: |
           git config user.name "por-dentro-bot"
           git config user.email "bot@users.noreply.github.com"
