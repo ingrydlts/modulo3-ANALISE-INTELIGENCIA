@@ -57,7 +57,7 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NOTION_DB_IG: ${{ secrets.NOTION_DB_IG }}
-          NOTION_INTELIGENCIA_PAGE_ID: ${{ secrets.NOTION_INTELIGENCIA_PAGE_ID }}
+          NOTION_ANALISES_DB_ID: ${{ secrets.NOTION_ANALISES_DB_ID }}
           # Ajuste o caminho se insights.json não estiver na raiz do repo:
           INSIGHTS_JSON_PATH: insights.json
         run: python analyze_audiencia.py
