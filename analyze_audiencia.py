@@ -50,10 +50,32 @@ SEMANA_LABEL = AGORA.strftime("%d/%m/%Y")
 
 # ── Busca de dados ────────────────────────────────────────────────────────────
 
+def resolver_data_source_id() -> str:
+    """
+    Resolve o data_source_id atual do database (API Notion 2025-09-03).
+
+    Desde essa versão da API, bancos de dados passaram a ter uma camada
+    intermediária de "data sources" — e versões recentes do notion-client
+    removeram `databases.query()` em favor de `data_sources.query()`.
+    Em vez de fixar o data_source_id numa secret separada (que quebraria se
+    o database for reestruturado), resolvemos dinamicamente a partir do
+    NOTION_DB_ID a cada execução.
+    """
+    db = notion.databases.retrieve(database_id=NOTION_DB_ID)
+    data_sources = db.get("data_sources", [])
+    if not data_sources:
+        raise RuntimeError(
+            "O database (NOTION_DB_IG) não retornou nenhum data_source. "
+            "Confirme se o ID é o de um database (não de uma página comum)."
+        )
+    return data_sources[0]["id"]
+
+
 def buscar_entradas_audiencia() -> list:
     """Busca todas as entradas AUDIÊNCIA + NOVO no banco Notion."""
-    resp = notion.databases.query(
-        database_id=NOTION_DB_ID,
+    data_source_id = resolver_data_source_id()
+    resp = notion.data_sources.query(
+        data_source_id=data_source_id,
         filter={
             "and": [
                 {"property": "CATEGORIA", "select": {"equals": "AUDIÊNCIA"}},
