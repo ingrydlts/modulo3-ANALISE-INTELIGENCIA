@@ -1,0 +1,296 @@
+{
+  "projeto": "Por Dentro",
+  "canal_youtube": "@ingrydlotierzo",
+  "instagram": "@ingrydinparis",
+  "criado_em": "2026-06-19",
+  "metas": {
+    "seguidores": {
+      "baseline": 985,
+      "baseline_data": "2026-07-02",
+      "meta": 10000,
+      "prazo_dias": 365,
+      "meta_data": "2027-07-02",
+      "seguidores_necessarios": 9015,
+      "ritmo_necessario_dia": 24.7,
+      "ritmo_necessario_semana": 172.9,
+      "ritmo_referencia_dia_junho": 10.5,
+      "ritmo_referencia_semana_junho": 73.5,
+      "projecao_365d_no_ritmo_junho": 4818,
+      "gap_ritmo_pct": -57.5,
+      "nota": "Ritmo necessário assume crescimento linear constante até a meta_data. Ritmo de referência é a média diária de Junho/2026 (único ciclo com dados completos de Instagram) — serve de comparação, não é a meta em si. No ritmo de Junho, a projeção em 365 dias fica bem abaixo de 10.000 — por isso a cadência de publicação precisa aumentar, não só manter."
+    },
+    "engajamento": {
+      "metodo": "media_movel_propria",
+      "ciclos_considerados": ["2026-06"],
+      "media_atual_pct": 15.06,
+      "margem_tolerancia_pontos": 4,
+      "piso_pct": 11.1,
+      "nota": "Piso = média dos últimos até 3 ciclos mensais com dados reais de Instagram, menos a margem de tolerância. Recalcula sozinho a cada novo ciclo adicionado. Abaixo do piso = sinal de alerta para revisar o calendário editorial."
+    }
+  },
+  "notion_sync": {
+    "conectado": true,
+    "database": "INSTA TO POR DENTRO",
+    "data_source_url": "collection://f46d0f3c-fb73-4c78-a5eb-5bfda8e3c376",
+    "sinal_de_publicacao": "posting_date_preenchida",
+    "motivo": "Campo 'Stage' não é atualizado de forma confiável após publicar (cards com data passada continuam em Design/Idea/Backlog) — Ingryd optou por contar qualquer card com Posting Date preenchida, mesmo sem Stage=Done, sabendo que isso pode superestimar posts que nunca foram ao ar de fato.",
+    "verificado_em": "2026-07-02"
+  },
+  "semanas": [
+    {
+      "id": "2026-06-S1",
+      "periodo": "1–7 Jun 2026",
+      "mes_ref": "2026-06",
+      "alcance": 3490,
+      "interacoes": 535,
+      "seguidores_ganhos": 61,
+      "engajamento_pct": 15.3,
+      "conta_para_meta": false,
+      "origem": "migrado_do_ciclo_mensal",
+      "posts_notion": {"contagem": 2, "formatos": ["Reel", "Reel"], "titulos": ["Mudanças França 2026 imigrantes brasileiros (01/06)", "Reagrupamento familiar ficou menos burocrático (02/06)"]},
+      "nota": "Melhor semana do mês em ritmo de seguidores antes do sprint final. Notion indica 2 cards com data nessa semana, ambos Reel."
+    },
+    {
+      "id": "2026-06-S2",
+      "periodo": "8–14 Jun 2026",
+      "mes_ref": "2026-06",
+      "alcance": 2518,
+      "interacoes": 289,
+      "seguidores_ganhos": 43,
+      "engajamento_pct": 11.5,
+      "conta_para_meta": false,
+      "origem": "migrado_do_ciclo_mensal",
+      "posts_notion": {"contagem": 1, "formatos": ["Reel"], "titulos": ["Precisa falar francês na frança? (08/06)"]},
+      "nota": "Semana mais fraca em alcance. Notion indica só 1 card com data nessa semana — cadência baixa, não irregularidade de execução."
+    },
+    {
+      "id": "2026-06-S3",
+      "periodo": "15–21 Jun 2026",
+      "mes_ref": "2026-06",
+      "alcance": 5273,
+      "interacoes": 791,
+      "seguidores_ganhos": 43,
+      "engajamento_pct": 15.0,
+      "conta_para_meta": false,
+      "origem": "migrado_do_ciclo_mensal",
+      "posts_notion": {"contagem": 2, "formatos": ["Reel", "Reel"], "titulos": ["agir sob pressao (17/06)", "APL 2026 congelamento estudantes estrangeiros CAF (19/06, Done)"]},
+      "nota": "Pico de alcance do mês (dia 17 — post viral). O card com data 17/06 ('agir sob pressao') está com Stage=Idea, não Done — provável que o post viral real seja este, mas o status não foi atualizado no Notion."
+    },
+    {
+      "id": "2026-06-S4",
+      "periodo": "22–28 Jun 2026",
+      "mes_ref": "2026-06",
+      "alcance": 2110,
+      "interacoes": 354,
+      "seguidores_ganhos": 22,
+      "engajamento_pct": 16.8,
+      "conta_para_meta": false,
+      "origem": "migrado_do_ciclo_mensal",
+      "posts_notion": {"contagem": 4, "formatos": ["Carrousel", "Carrousel", "Reel", "Carrousel"], "titulos": ["O Fim das Facilidades... (24/06)", "Campus France na sua universidade (26/06)", "regras aluguel frança (26/06)", "Bouge Ta Préf (28/06)"]},
+      "nota": "Menor alcance do mês apesar de ser a semana com MAIS cards datados (4) no Notion — nenhum com Stage Done/Scheduled (Design/Backlog). Sinal forte de que planejamento não virou publicação de fato nessa semana."
+    },
+    {
+      "id": "2026-06-S5",
+      "periodo": "29–30 Jun 2026",
+      "mes_ref": "2026-06",
+      "alcance": 3172,
+      "interacoes": 525,
+      "seguidores_ganhos": 145,
+      "engajamento_pct": 16.6,
+      "conta_para_meta": false,
+      "origem": "migrado_do_ciclo_mensal",
+      "posts_notion": {"contagem": 1, "formatos": ["Reel"], "titulos": ["INTRO SIST EDUCACIONAL (29/06, Scheduled)"]},
+      "nota": "Sprint final — 2 dias, ~70% dos seguidores do mês inteiro, a partir de só 1 post agendado."
+    }
+  ],
+  "bilans_audiencia": [],
+  "ciclos": [
+    {
+      "id": "2026-04",
+      "periodo": "Abril 2026",
+      "adicionado_em": "2026-06-19",
+      "youtube": {
+        "views": 182,
+        "views_variacao_pct": null,
+        "watchtime_horas": 10.5,
+        "retencao_media_pct": 45,
+        "ctr_medio_pct": 3.8,
+        "inscritos_ganhos": 3,
+        "inscritos_total": null,
+        "impressoes": 1420,
+        "top_video_titulo": "COMPRA DE MERCADO EM PARIS 2024: CUSTA CARO? ⎮ Carrefour",
+        "top_video_views": 33,
+        "principal_fonte_trafego": "Pesquisa YouTube + Google",
+        "principal_fonte_pct": 55,
+        "status_retencao": "abaixo_meta",
+        "status_ctr": "medio"
+      },
+      "instagram": {
+        "alcance": null,
+        "alcance_variacao_pct": null,
+        "impressoes": null,
+        "seguidores_ganhos": null,
+        "seguidores_total": null,
+        "salvamentos": null,
+        "compartilhamentos": null,
+        "cliques_bio": null,
+        "engajamento_medio_pct": null,
+        "top_post_descricao": "Dados não disponíveis — exportar Instagram Insights do app",
+        "top_post_metrica": null,
+        "formato_destaque": null
+      },
+      "insights": [
+        "Canal operando no piloto automático sem novo vídeo em 2,5 meses — tráfego sustentado só pelo catálogo evergreen. Prova de que o SEO está funcionando, mas sem acelerador editorial.",
+        "CTR médio (≈3.8%) abaixo do benchmark de canais de nicho similar (4.5–6%). Thumbnails e títulos do catálogo antigo não estão otimizados para 2026 — oportunidade de refazer títulos sem re-editar vídeos.",
+        "Abril sem publicação nova gerou base de comparação: canal gera ~6 views/dia no piloto automático. Qualquer vídeo publicado multiplica isso imediatamente, como confirmado em Maio."
+      ],
+      "acoes_proximo_ciclo": [
+        "Publicar vídeo fiscal antes do prazo do IR francês (mai/jun) → capturar busca sazonal de alto volume",
+        "Atualizar títulos dos 3 vídeos âncora com ano 2026 → melhorar CTR sem re-editar",
+        "Configurar telas finais em todos os vídeos existentes → capturar os 6+ espectadores/dia que chegam pelo catálogo"
+      ],
+      "decisao_editorial": "Publicar o vídeo de Imposto de Renda antes de 4 de maio para capturar o pico de busca sazonal — janela identificada, não desperdiçar."
+    },
+    {
+      "id": "2026-05",
+      "periodo": "Maio 2026",
+      "adicionado_em": "2026-06-19",
+      "youtube": {
+        "views": 479,
+        "views_variacao_pct": 163,
+        "watchtime_horas": 35.7,
+        "retencao_media_pct": 47,
+        "ctr_medio_pct": 5.9,
+        "inscritos_ganhos": 11,
+        "inscritos_total": null,
+        "impressoes": 3200,
+        "top_video_titulo": "Imposto de Renda na França 2026: O Guia Completo para Imigrantes",
+        "top_video_views": 265,
+        "principal_fonte_trafego": "Pesquisa YouTube + Google",
+        "principal_fonte_pct": 60,
+        "status_retencao": "crescendo",
+        "status_ctr": "alto"
+      },
+      "instagram": {
+        "alcance": null,
+        "alcance_variacao_pct": null,
+        "impressoes": null,
+        "seguidores_ganhos": null,
+        "seguidores_total": null,
+        "salvamentos": null,
+        "compartilhamentos": null,
+        "cliques_bio": null,
+        "engajamento_medio_pct": null,
+        "top_post_descricao": "Dados não disponíveis — exportar Instagram Insights do app",
+        "top_post_metrica": null,
+        "formato_destaque": null
+      },
+      "insights": [
+        "Vídeo de IR publicado em 4 de maio gerou +163% de views vs. Abril, representando 55% de todo o tráfego do mês. CTR 11.31% — 2.5x a média do canal. Título 'Guia Completo + ano + tema fiscal' é fórmula comprovada.",
+        "9 dos 11 novos inscritos de Maio (82%) vieram de um único vídeo. Conteúdo de utilidade prática > lifestyle para conversão em inscrito. O público que chega pelo IR está disposto a se comprometer com o canal.",
+        "O vídeo teve pico nas semanas 2–3 (11–24 de maio, 78–80 views/semana) e não no lançamento — a busca 'imposto de renda França' cresceu junto com o prazo. Publicar antes da janela funcionou."
+      ],
+      "acoes_proximo_ciclo": [
+        "Identificar o próximo evento fiscal/burocrático sazonal e publicar antes da janela de busca → replicar o efeito IR",
+        "Criar Reel + carrossel do Instagram baseado no vídeo IR — o tema ainda está quente em junho",
+        "Série 'Guia Completo': Seguro-desemprego 2026, CAF o que você tem direito 2026 — mesma estrutura, mesmo público"
+      ],
+      "decisao_editorial": "Apostar no formato 'Guia Completo + ano + burocracia específica' como série editorial recorrente — o IR provou que existe demanda e o canal tem autoridade para cobrir esse território."
+    },
+    {
+      "id": "2026-06",
+      "periodo": "Junho 2026",
+      "adicionado_em": "2026-07-01",
+      "youtube": {
+        "views": 131,
+        "views_variacao_pct": -28,
+        "watchtime_horas": 9.2,
+        "retencao_media_pct": 45,
+        "ctr_medio_pct": 4.4,
+        "inscritos_ganhos": 2,
+        "inscritos_total": null,
+        "impressoes": 890,
+        "top_video_titulo": "Imposto de Renda na França 2026: O Guia Completo para Imigrantes",
+        "top_video_views": 38,
+        "principal_fonte_trafego": "Pesquisa YouTube + Google",
+        "principal_fonte_pct": 55,
+        "status_retencao": "estavel",
+        "status_ctr": "medio"
+      },
+      "instagram": {
+        "alcance": 16563,
+        "alcance_variacao_pct": null,
+        "impressoes": 31500,
+        "seguidores_ganhos": 314,
+        "seguidores_total": 985,
+        "salvamentos": null,
+        "compartilhamentos": null,
+        "cliques_bio": null,
+        "visitas_perfil": 670,
+        "engajamento_medio_pct": 15.06,
+        "interacoes": 2494,
+        "top_post_descricao": "Pico 17/Jun (alcance 2.219, 373 interações, 16,8% eng.) e sprint final 29–30/Jun (+145 seguidores em 2 dias)",
+        "top_post_metrica": "+314 seguidores no mês | 15,1% taxa de engajamento",
+        "formato_destaque": "Reel",
+        "dados_diarios": {
+          "alcance":    [1238,475,515,340,476,194,252,937,393,344,276,133,127,308,347,346,2219,840,852,483,186,337,190,308,384,329,272,290,1967,1205],
+          "impressoes": [2063,771,725,534,913,251,344,1675,483,489,1120,207,183,415,729,487,3782,1795,1249,758,252,493,262,625,727,1901,638,1023,3558,3048],
+          "interacoes": [117,89,92,67,76,57,37,104,34,47,36,21,23,24,34,47,373,174,88,53,22,48,54,43,46,100,24,39,273,252],
+          "seguidores_ganhos": [11,9,8,9,12,5,7,14,6,8,8,1,4,2,7,3,4,6,9,13,1,7,3,2,2,4,2,2,76,69],
+          "visitas_perfil": [37,21,13,19,35,4,13,32,10,13,12,8,5,9,17,7,30,16,21,24,6,6,6,14,19,26,13,16,117,101]
+        },
+        "metricas_calculadas": {
+          "frequencia_exposicao": 1.90,
+          "conv_visita_seguidor_pct": 46.9,
+          "conv_alcance_seguidor_pct": 1.9,
+          "interacoes_por_mil_impressoes": 79.2,
+          "pico_alcance_dia": { "dia": 17, "valor": 2219 },
+          "pico_seguidores_dia": { "dia": 29, "valor": 76 },
+          "media_alcance_dia": 552,
+          "media_seguidores_dia": 10.5,
+          "semanas": [
+            { "semana": "S1 (1–7/Jun)",   "alcance": 3490, "interacoes": 535, "seguidores": 61 },
+            { "semana": "S2 (8–14/Jun)",  "alcance": 2518, "interacoes": 289, "seguidores": 43 },
+            { "semana": "S3 (15–21/Jun)", "alcance": 5273, "interacoes": 791, "seguidores": 43 },
+            { "semana": "S4 (22–28/Jun)", "alcance": 2110, "interacoes": 354, "seguidores": 22 },
+            { "semana": "S5 (29–30/Jun)", "alcance": 3172, "interacoes": 525, "seguidores": 145 }
+          ],
+          "media_por_dia_da_semana": [
+            { "dia": "Seg", "alcance_medio": 965, "int_medio": 127 },
+            { "dia": "Ter", "alcance_medio": 522, "int_medio": 85 },
+            { "dia": "Qua", "alcance_medio": 867, "int_medio": 139 },
+            { "dia": "Qui", "alcance_medio": 460, "int_medio": 81 },
+            { "dia": "Sex", "alcance_medio": 448, "int_medio": 71 },
+            { "dia": "Sáb", "alcance_medio": 269, "int_medio": 51 },
+            { "dia": "Dom", "alcance_medio": 264, "int_medio": 31 }
+          ]
+        }
+      },
+      "audiencia": {
+        "dms_analisados": 0,
+        "comentarios": 0,
+        "segmento_brasil": 0,
+        "segmento_processo": 0,
+        "segmento_franca": 0,
+        "temas_audiencia": []
+      },
+      "insights": [
+        "EFEITO PICO DOMINANTE: 2 eventos (17/Jun + 29–30/Jun) representaram 31% do alcance total do Instagram e 70% dos seguidores novos do mês. O crescimento não é linear — é orientado por publicações de alto impacto.",
+        "TAXA DE CONVERSÃO EXCEPCIONAL: 46,9% das pessoas que visitam o perfil seguem a conta. O gargalo não é convicção, é descoberta — quem chega, fica.",
+        "SEMANAS MORTAS: Semanas 2 (8–14/Jun) e 4 (22–28/Jun) tiveram alcance médio de 359/dia — 65% abaixo das semanas com pico. Cadência irregular de publicação deixou lacunas de visibilidade.",
+        "QUEDA PÓS-PICO NO YOUTUBE: -28% de views vs. Maio — queda natural após o pico do IR, mas baseline de 7,3 views/dia está acima dos 6,1/dia de Abril pré-vídeo. Os inscritos conquistados continuam voltando.",
+        "RITMO ABAIXO DA META: no ritmo médio de Junho (10,5 seguidores/dia), a projeção em 365 dias fica em ~4.800 seguidores — menos da metade dos 10.000 necessários. Fechar essa lacuna exige mais que manter o padrão: exige aumentar a frequência de posts de alto impacto.",
+        "CRUZAMENTO COM NOTION (novo): a cadência real de Junho foi ~1 post/semana (4-5 cards com data, quase todos Reel), não 2×/semana como o calendário original sugeria — a lacuna não é irregularidade, é volume baixo. A semana de menor alcance (S4, 22–28/Jun) foi a que teve MAIS cards planejados (4) e ZERO confirmados como publicados — sinal de que o gargalo pode estar entre 'planejado' e 'no ar', não só na estratégia de tema."
+      ],
+      "acoes_proximo_ciclo": [
+        "Publicar 2× por semana no Instagram sem exceções → Junho real rodou a ~1×/semana; dobrar a cadência é a alavanca mais direta pro ritmo de seguidores necessário.",
+        "Identificar e replicar o formato do post de 17/Jun (16,8% de engajamento) → criar 2 vídeos no mesmo estilo em Julho.",
+        "Adicionar CTA verbal 'visita meu perfil' nos Reels de alto alcance → com 46,9% de conv. visita→seguidor, cada visita vale.",
+        "Iniciar check-in semanal (novo) → registrar seguidores/alcance/engajamento toda semana para corrigir o calendário editorial em tempo real, não só no fechamento do mês.",
+        "Fechar o loop Notion→publicado (novo) → cards em Design/Idea com data passada (ex: 24, 26, 28/Jun) somem sem confirmação de que foram ao ar; revisar semanalmente o board evita perder rastro do que realmente foi publicado."
+      ],
+      "decisao_editorial": "Julho deve ter publicação sistemática (2× semana no Instagram) com foco em replicar o padrão dos picos de Junho — urgência prática + grande escala de afetados. A partir de julho, o acompanhamento passa a ser semanal, com o bilan mensal mantido para a leitura estratégica.",
+      "pergunta_editorial": "Se 2 publicações geraram 70% do crescimento de Junho, qual é o padrão que define esse tipo de conteúdo — tema, formato, gancho ou dia — e como transformar isso em sistema replicável para Julho?"
+    }
+  ]
+}
