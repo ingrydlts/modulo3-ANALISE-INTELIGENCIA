@@ -4,8 +4,15 @@ Roda toda SEXTA-FEIRA às 07:00 (horário de Paris) via GitHub Actions —
 antes do script de busca de fontes, para que a busca de conteúdo já
 leve em conta os insights de audiência mais recentes.
 
+IMPORTANTE: este script roda DEPOIS de enriquecer_conversas_audiencia.py.
+Aquele script lê os prints (screenshots) de cada entrada com visão da Claude
+e preenche "Texte" + os campos qualitativos por entrada, marcando
+STATUS="Analisado". Este script aqui só agrega entradas que JÁ passaram por
+esse enriquecimento (STATUS="Analisado") — ele não lê imagens.
+
 Fluxo:
-1. Busca entradas AUDIÊNCIA + NOVO do Notion (comentários, DMs, stories)
+1. Busca entradas AUDIÊNCIA + Analisado do Notion (já enriquecidas por
+   enriquecer_conversas_audiencia.py — texto já transcrito)
 2. Organiza por plataforma (YouTube / Instagram)
 3. Envia para Claude, que devolve um JSON estruturado de análise de audiência
 4. Salva a análise em duas frentes:
@@ -85,14 +92,18 @@ def resolver_data_source_id(database_id: str) -> str:
 
 
 def buscar_entradas_audiencia() -> list:
-    """Busca todas as entradas AUDIÊNCIA + NOVO no banco Notion."""
+    """
+    Busca entradas AUDIÊNCIA já enriquecidas (STATUS="Analisado") no banco
+    Notion. O enriquecimento por entrada (transcrição do print + dor/insight/
+    etc.) é feito antes, por enriquecer_conversas_audiencia.py.
+    """
     data_source_id = resolver_data_source_id(NOTION_DB_ID)
     resp = notion.data_sources.query(
         data_source_id=data_source_id,
         filter={
             "and": [
                 {"property": "CATEGORIA", "select": {"equals": "AUDIÊNCIA"}},
-                {"property": "STATUS",    "select": {"equals": "NOVO"}}
+                {"property": "STATUS",    "select": {"equals": "Analisado"}}
             ]
         }
     )
