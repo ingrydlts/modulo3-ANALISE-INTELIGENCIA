@@ -51,7 +51,15 @@ jobs:
         # uma versão do anthropic que ainda passa 'proxies' internamente).
         run: pip install "anthropic>=0.39,<1.0" "httpx>=0.27,<0.28" "notion-client>=2.7.0" python-dotenv
 
-      - name: Rodar análise de audiência
+      - name: Enriquecer conversas de audiência (lê os prints, por entrada)
+        if: steps.guard.outputs.run == 'true'
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_DB_IG: ${{ secrets.NOTION_DB_IG }}
+        run: python enriquecer_conversas_audiencia.py
+
+      - name: Rodar análise de audiência (bilan agregado da semana)
         if: steps.guard.outputs.run == 'true'
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
