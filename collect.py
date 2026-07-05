@@ -5,8 +5,18 @@ Roda toda sexta à noite via GitHub Actions.
 Fluxo:
 1. Lê entradas CONCORRÊNCIA + YOUTUBE + NOVO do Notion (FICHIERS INSTAGRAM)
 2. Para cada entrada, busca dados do canal no YouTube Data API
-3. Salva os dados coletados como nova página no Notion (Inteligência)
+3. Salva os dados coletados como nova linha na base COLETAS YOUTUBE
 4. Marca a entrada original como PROCESSADO
+
+Variáveis de ambiente esperadas:
+  NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_COLETAS_DB_ID
+
+Nota de correção (05/07/2026): este script antes também exigia NOTION_INTELIGENCIA_PAGE_ID
+só para uma checagem de sanidade (a variável nunca era usada para gravar nada) — e essa página
+estava deletada no Notion, então a checagem não protegia nada de verdade. Trocamos a checagem
+para validar diretamente NOTION_COLETAS_DB_ID, que é o destino real dos dados. Também migramos
+a consulta em FICHIERS INSTAGRAM para a API de data sources (mesma usada pelos scripts de
+audiência), unificando a versão da API Notion usada em todo o repositório.
 """
 
 import os
@@ -21,39 +31,49 @@ from googleapiclient.discovery import build
 load_dotenv()
 
 # ── Configuração ──────────────────────────────────────────────────────────────
-NOTION_TOKEN                = os.environ.get("NOTION_TOKEN")
-YOUTUBE_API_KEY             = os.environ.get("YOUTUBE_API_KEY")
-NOTION_DB_ID                = os.environ.get("NOTION_DB_ID")
-NOTION_INTELIGENCIA_PAGE_ID = os.environ.get("NOTION_INTELIGENCIA_PAGE_ID")
-NOTION_COLETAS_DB_ID        = os.environ.get("NOTION_COLETAS_DB_ID")
+NOTION_TOKEN         = os.environ.get("NOTION_TOKEN")
+YOUTUBE_API_KEY      = os.environ.get("YOUTUBE_API_KEY")
+NOTION_DB_ID         = os.environ.get("NOTION_DB_ID")           # FICHIERS INSTAGRAM
+NOTION_COLETAS_DB_ID = os.environ.get("NOTION_COLETAS_DB_ID")   # COLETAS YOUTUBE
 
-if not all([NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_INTELIGENCIA_PAGE_ID, NOTION_COLETAS_DB_ID]):
-    raise SystemExit("❌ Variável de ambiente ausente. Verifique: NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_INTELIGENCIA_PAGE_ID, NOTION_COLETAS_DB_ID")
+if not all([NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_COLETAS_DB_ID]):
+    raise SystemExit("❌ Variável de ambiente ausente. Verifique: NOTION_TOKEN, YOUTUBE_API_KEY, NOTION_DB_ID, NOTION_COLETAS_DB_ID")
 
 notion  = NotionClient(auth=NOTION_TOKEN)
 youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
+_data_source_cache = {}
+
+
+def resolver_data_source_id(database_id: str) -> str:
+    """
+    Resolve o data_source_id atual de um database (API Notion 2025-09-03+).
+    Ver mesma função em analyze_audiencia.py — bancos passaram a ter uma camada
+    intermediária de "data sources"; resolvemos dinamicamente a cada execução.
+    """
+    if database_id in _data_source_cache:
+        return _data_source_cache[database_id]
+    db = notion.databases.retrieve(database_id=database_id)
+    data_sources = db.get("data_sources", [])
+    if not data_sources:
+        raise RuntimeError(
+            f"O database {database_id} não retornou nenhum data_source. "
+            "Confirme se o ID é o de um database (não de uma página comum)."
+        )
+    data_source_id = data_sources[0]["id"]
+    _data_source_cache[database_id] = data_source_id
+    return data_source_id
+
 
 # ── Validação do alvo Notion ──────────────────────────────────────────────────
-
-def detectar_tipo_alvo(target_id: str) -> str:
-    """Detecta se o ID é uma page ou database no Notion."""
-    try:
-        notion.pages.retrieve(target_id)
-        return "page"
-    except APIResponseError:
-        pass
-    try:
-        notion.databases.retrieve(target_id)
-        return "database"
-    except APIResponseError:
-        return None
-
-TARGET_TYPE = detectar_tipo_alvo(NOTION_INTELIGENCIA_PAGE_ID)
-if not TARGET_TYPE:
+# Confere que a base de destino real (COLETAS YOUTUBE) existe e está acessível
+# antes de gastar cota da YouTube API — falha cedo e com mensagem clara.
+try:
+    resolver_data_source_id(NOTION_COLETAS_DB_ID)
+except (APIResponseError, RuntimeError) as e:
     raise SystemExit(
-        f"❌ Não foi possível acessar NOTION_INTELIGENCIA_PAGE_ID ({NOTION_INTELIGENCIA_PAGE_ID}).\n"
-        "Verifique se a página existe e foi compartilhada com a integração Notion."
+        f"❌ Não foi possível acessar NOTION_COLETAS_DB_ID ({NOTION_COLETAS_DB_ID}): {e}\n"
+        "Verifique se a base existe e foi compartilhada com a integração Notion."
     )
 
 MESES_PT = {
@@ -72,12 +92,10 @@ MES_ATUAL_PT  = MESES_PT[_now.strftime("%B")]
 
 def extrair_channel_id(url: str) -> str | None:
     """Extrai o channel ID de URLs do YouTube (formatos /channel/, @handle e /c/ legado)."""
-    # Formato: youtube.com/channel/UCxxxxxx
     match = re.search(r'youtube\.com/channel/(UC[\w-]+)', url)
     if match:
         return match.group(1)
 
-    # Formato: youtube.com/@handle
     match = re.search(r'youtube\.com/@([\w.-]+)', url)
     if match:
         handle = match.group(1)
@@ -85,11 +103,9 @@ def extrair_channel_id(url: str) -> str | None:
         items = resp.get("items", [])
         return items[0]["id"] if items else None
 
-    # Formato legado: youtube.com/c/NomeDoCanal ou youtube.com/user/NomeDoCanal
     match = re.search(r'youtube\.com/(?:c|user)/([\w.-]+)', url)
     if match:
         nome = match.group(1)
-        # Tenta buscar pelo nome do canal via search
         resp = youtube.search().list(
             part="snippet",
             q=nome,
@@ -118,14 +134,12 @@ def buscar_dados_canal(channel_id: str) -> dict | None:
     stats      = canal.get("statistics", {})
     thumbnails = canal["snippet"].get("thumbnails", {})
 
-    # Thumbnail do canal (melhor resolução disponível)
     thumbnail_url = (
         thumbnails.get("high", {}).get("url") or
         thumbnails.get("medium", {}).get("url") or
         thumbnails.get("default", {}).get("url") or ""
     )
 
-    # Últimos 10 vídeos
     playlist_resp = youtube.playlistItems().list(
         part="contentDetails",
         playlistId=uploads_id,
@@ -152,7 +166,6 @@ def buscar_dados_canal(channel_id: str) -> dict | None:
                 "thumbnail":   v["snippet"].get("thumbnails", {}).get("high", {}).get("url", "")
             })
 
-    # Vídeo com mais views (para usar como capa se preferir)
     top_video = max(videos, key=lambda v: v["views"]) if videos else None
 
     return {
@@ -168,9 +181,10 @@ def buscar_dados_canal(channel_id: str) -> dict | None:
 # ── Helpers Notion ────────────────────────────────────────────────────────────
 
 def buscar_entradas_novas() -> list:
-    """Retorna entradas CONCORRÊNCIA + YOUTUBE + NOVO do banco Notion."""
-    resp = notion.databases.query(
-        database_id=NOTION_DB_ID,
+    """Retorna entradas CONCORRÊNCIA + YOUTUBE + NOVO do banco FICHIERS INSTAGRAM."""
+    data_source_id = resolver_data_source_id(NOTION_DB_ID)
+    resp = notion.data_sources.query(
+        data_source_id=data_source_id,
         filter={
             "and": [
                 {"property": "CATEGORIA",  "select": {"equals": "CONCORRÊNCIA"}},
@@ -183,10 +197,16 @@ def buscar_entradas_novas() -> list:
 
 
 def marcar_processado(page_id: str):
-    notion.pages.update(
-        page_id=page_id,
-        properties={"STATUS": {"select": {"name": "PROCESSADO"}}}
-    )
+    try:
+        notion.pages.update(
+            page_id=page_id,
+            properties={"STATUS": {"select": {"name": "PROCESSADO"}}}
+        )
+    except APIResponseError as e:
+        if "archived" in str(e).lower():
+            print(f"  ⚠ Página {page_id} está arquivada no Notion — pulando marcação de PROCESSADO.")
+        else:
+            raise
 
 
 def montar_blocos_videos(videos: list) -> list:
@@ -203,7 +223,6 @@ def montar_blocos_videos(videos: list) -> list:
     ]
 
     for v in videos:
-        # Thumbnail do vídeo como imagem inline
         if v.get("thumbnail"):
             blocos.append({
                 "object": "block", "type": "image",
@@ -230,7 +249,6 @@ def salvar_coleta_no_notion(dados: dict, url_origem: str, max_retries: int = 3):
     """Cria entrada na database COLETAS YOUTUBE com thumbnail como capa."""
     top = dados.get("top_video") or {}
 
-    # Usa thumbnail do top vídeo como capa (mais visual que o avatar do canal)
     capa_url = top.get("thumbnail") or dados.get("thumbnail_url") or ""
 
     properties = {
@@ -284,7 +302,6 @@ def main():
     for entrada in entradas:
         page_id = entrada["id"]
 
-        # Extrair URL
         url_prop = entrada["properties"].get("URL", {}).get("url") or ""
         nome_prop = entrada["properties"].get("Name", {}).get("title", [])
         nome = nome_prop[0]["text"]["content"] if nome_prop else page_id
