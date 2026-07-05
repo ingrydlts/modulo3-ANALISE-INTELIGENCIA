@@ -28,5 +28,4 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
-          NOTION_INTELIGENCIA_PAGE_ID: ${{ secrets.NOTION_INTELIGENCIA_PAGE_ID }}
           NOTION_COLETAS_DB_ID: ${{ secrets.NOTION_COLETAS_DB_ID }}
